@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from posts.models import Group, Post
+from posts.models import FIRST_SYMBOLS, Group, Post
 
 User = get_user_model()
 
@@ -40,7 +40,7 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         field_title = {
             str(group): PostModelTest.group.title,
-            str(post): PostModelTest.post.text[:15],
+            str(post): PostModelTest.post.text[:FIRST_SYMBOLS],
         }
         for value, expected in field_title.items():
             with self.subTest(value=value):

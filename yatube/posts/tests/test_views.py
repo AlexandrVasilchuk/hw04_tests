@@ -63,6 +63,7 @@ class TestViewsPosts(TestCase):
     def correct_page_obj_first_obj(self, context) -> None:
         """Проверка соотвествия поста на странице"""
         fields_to_check = {
+            context.pk: TestViewsPosts.post.pk,
             context.author.username: TestViewsPosts.user.username,
             context.group.title: TestViewsPosts.group.title,
             context.text: TestViewsPosts.post.text,
