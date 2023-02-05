@@ -25,6 +25,6 @@ class TestUsersForm(TestCase):
         }
         self.guest_client.post(reverse('users:signup'), data=form_data)
         self.assertEqual(
-            User.objects.filter(username=TestUsersForm.user.username).exists(),
+            User.objects.filter(username=form_data['username']).exists(),
             True,
         )
