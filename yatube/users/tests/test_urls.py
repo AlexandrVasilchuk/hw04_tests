@@ -13,7 +13,6 @@ class UsersURLTest(TestCase):
         cls.user = User.objects.create_user(username='auth')
 
     def setUp(self) -> None:
-        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(UsersURLTest.user)
 
@@ -49,7 +48,7 @@ class UsersURLTest(TestCase):
         for response, expected in response_values.items():
             with self.subTest(value=response):
                 self.assertRedirects(
-                    self.guest_client.get(response),
+                    self.client.get(response),
                     expected,
                     msg_prefix=f'Страница {response} перенаправляет не туда!',
                 )

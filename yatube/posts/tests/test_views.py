@@ -39,7 +39,7 @@ class TestViewsPosts(TestCase):
             reverse('posts:index'): 'posts/index.html',
             reverse('posts:post_create'): 'posts/create_post.html',
             reverse(
-                'posts:group_list', kwargs={'slug': 'test_slug'}
+                'posts:group_list', kwargs={'slug': TestViewsPosts.group.slug}
             ): 'posts/group_list.html',
             reverse(
                 'posts:post_detail', kwargs={'pk': TestViewsPosts.post.pk}
@@ -48,7 +48,7 @@ class TestViewsPosts(TestCase):
                 'posts:post_edit', kwargs={'pk': TestViewsPosts.post.pk}
             ): 'posts/create_post.html',
             reverse(
-                'posts:profile', kwargs={'username': 'test_name'}
+                'posts:profile', kwargs={'username': TestViewsPosts.user.username}
             ): 'posts/profile.html',
         }
         for response, value in response_expected.items():

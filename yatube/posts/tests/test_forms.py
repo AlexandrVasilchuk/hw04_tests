@@ -21,9 +21,10 @@ class TestPostForm(TestCase):
             slug='test_slug',
             description='Тестовое описание',
         )
+        cls.text = 'Пост №1'
         cls.post = Post.objects.create(
             author=TestPostForm.user,
-            text='Пост №1',
+            text=TestPostForm.text,
         )
 
     def setUp(self) -> None:
@@ -34,6 +35,7 @@ class TestPostForm(TestCase):
         """Проверка добавления записи в БД при отправке валидной формы"""
         amount_posts = Post.objects.count()
         self.assertEqual(Post.objects.count(), amount_posts)
+        self.text = 'Тестовый пост'
         form_data = {
             'text': 'Тестовый пост',
             'group': TestPostForm.group.pk,
@@ -41,16 +43,18 @@ class TestPostForm(TestCase):
         response = self.authorized_client.post(
             reverse('posts:post_create'), data=form_data, follow=True
         )
-        self.assertEqual(
-            Post.objects.filter(text='Тестовый пост').exists(), True
-        )
+        self.assertEqual(Post.objects.filter(pk=response.context['post'].pk).exists(), True)
         self.assertRedirects(
-            response, reverse('posts:profile', kwargs={'username': 'auth'})
+            response,
+            reverse(
+                'posts:profile',
+                kwargs={'username': TestPostForm.user.username},
+            ),
         )
         self.assertEqual(Post.objects.count(), amount_posts + 1)
 
     def test_not_valid_form(self) -> None:
-        """Проверка достпуности страницы при отправке невалидной формы"""
+        """Проверка доступности страницы при отправке невалидной формы"""
         amount_posts = Post.objects.count()
         self.assertEqual(Post.objects.count(), amount_posts)
         form_data = {
@@ -67,7 +71,10 @@ class TestPostForm(TestCase):
 
     def test_edit_post(self) -> None:
         """Проверка работы формы при изменении поста"""
-        form_data = {'text': 'Измененный пост', 'group': ''}
+        form_data = {
+            'text': 'Измененный пост',
+            'group': '',
+        }
         response = self.authorized_client.post(
             reverse('posts:post_edit', kwargs={'pk': TestPostForm.post.pk}),
             data=form_data,
@@ -78,8 +85,8 @@ class TestPostForm(TestCase):
             reverse('posts:post_detail', kwargs={'pk': TestPostForm.post.pk}),
         )
         self.assertEqual(
-            Post.objects.filter(text='Измененный пост').exists(), True
+            Post.objects.get(pk=TestPostForm.post.pk).text, form_data['text']
         )
-        self.assertEqual(
-            Post.objects.filter(text='Тестовый пост').exists(), False
+        self.assertNotEqual(
+            Post.objects.get(pk=TestPostForm.post.pk).text, TestPostForm.text
         )

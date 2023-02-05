@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -23,6 +24,7 @@ class PaginatorViewsTest(TestCase):
                 group=PaginatorViewsTest.group,
                 text=f'Тестовый пост номер {txt}',
             )
+        cls.amount_objects = txt
 
     def setUp(self) -> None:
         self.authorized_client = Client()
@@ -31,15 +33,32 @@ class PaginatorViewsTest(TestCase):
     def test_paginator_separator(self) -> None:
         """Проверка корректного разделения постов паджинатором"""
         response_values = {
-            reverse('posts:index'): 10,
-            reverse('posts:index') + '?page=2': 3,
-            reverse('posts:group_list', kwargs={'slug': 'test_slug'}): 10,
-            reverse('posts:group_list', kwargs={'slug': 'test_slug'})
-            + '?page=2': 3,
-            reverse('posts:profile', kwargs={'username': 'auth'}): 10,
-            reverse('posts:profile', kwargs={'username': 'auth'})
-            + '?page=2': 3,
+            reverse('posts:index'): settings.PAGE_SIZE,
+            reverse('posts:index')
+            + '?page=2': PaginatorViewsTest.amount_objects
+            - settings.PAGE_SIZE,
+            reverse(
+                'posts:group_list',
+                kwargs={'slug': PaginatorViewsTest.group.slug},
+            ): settings.PAGE_SIZE,
+            reverse(
+                'posts:group_list',
+                kwargs={'slug': PaginatorViewsTest.group.slug},
+            )
+            + '?page=2': PaginatorViewsTest.amount_objects
+            - settings.PAGE_SIZE,
+            reverse(
+                'posts:profile',
+                kwargs={'username': PaginatorViewsTest.user.username},
+            ): settings.PAGE_SIZE,
+            reverse(
+                'posts:profile',
+                kwargs={'username': PaginatorViewsTest.user.username},
+            )
+            + '?page=2': PaginatorViewsTest.amount_objects
+            - settings.PAGE_SIZE,
         }
+
         for response, value in response_values.items():
             with self.subTest(value=value):
                 self.assertEqual(

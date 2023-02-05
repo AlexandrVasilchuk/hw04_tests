@@ -39,8 +39,8 @@ class PostModelTest(TestCase):
         group = PostModelTest.group
         post = PostModelTest.post
         field_title = {
-            str(group): 'Тестовая группа',
-            str(post): 'Тестовый пост б',
+            str(group): PostModelTest.group.title,
+            str(post): PostModelTest.post.text[:15],
         }
         for value, expected in field_title.items():
             with self.subTest(value=value):

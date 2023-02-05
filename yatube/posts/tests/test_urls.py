@@ -25,17 +25,16 @@ class PostURLTest(TestCase):
         )
 
     def setUp(self) -> None:
-        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(PostURLTest.user)
 
     def test_pages_available(self) -> None:
         """Проверка доступности страниц по указанным адресам для всех"""
         response_values = {
-            self.guest_client.get(''): HTTPStatus.OK,
-            self.guest_client.get('/group/test_group_slug/'): HTTPStatus.OK,
-            self.guest_client.get('/profile/auth/'): HTTPStatus.OK,
-            self.guest_client.get(
+            self.client.get(''): HTTPStatus.OK,
+            self.client.get(f'/group/{PostURLTest.group.slug}/'): HTTPStatus.OK,
+            self.client.get(f'/profile/{PostURLTest.user.username}/'): HTTPStatus.OK,
+            self.client.get(
                 f'/posts/{PostURLTest.post.pk}/'
             ): HTTPStatus.OK,
         }
@@ -50,10 +49,10 @@ class PostURLTest(TestCase):
     def test_redirect_for_anonymous(self) -> None:
         """Проверка редиректа анонимного пользователя"""
         response_values = {
-            self.guest_client.get(
+            self.client.get(
                 '/create/', follow=True
             ): '/auth/login/?next=/create/',
-            self.guest_client.get(
+            self.client.get(
                 f'/posts/{PostURLTest.post.pk}/edit/', follow=True
             ): f'/auth/login/?next=/posts/{PostURLTest.post.pk}/edit/',
         }
@@ -97,14 +96,14 @@ class PostURLTest(TestCase):
         self.assertRedirects(response, value)
 
     def test_template_available(self) -> None:
-        """Проверка обращение по url использовает верный шаблон"""
+        """Проверка обращение по url использует верный шаблон"""
         response_values = {
             '': 'posts/index.html',
             '/create/': 'posts/create_post.html',
-            '/group/test_group_slug/': 'posts/group_list.html',
+            f'/group/{PostURLTest.group.slug}/': 'posts/group_list.html',
             f'/posts/{PostURLTest.post.pk}/': 'posts/post_detail.html',
             f'/posts/{PostURLTest.post.pk}/edit/': 'posts/create_post.html',
-            '/profile/auth/': 'posts/profile.html',
+            f'/profile/{PostURLTest.user.username}/': 'posts/profile.html',
         }
         for response, value in response_values.items():
             with self.subTest(value=value):
