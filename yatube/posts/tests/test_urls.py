@@ -32,11 +32,13 @@ class PostURLTest(TestCase):
         """Проверка доступности страниц по указанным адресам для всех"""
         response_values = {
             self.client.get(''): HTTPStatus.OK,
-            self.client.get(f'/group/{PostURLTest.group.slug}/'): HTTPStatus.OK,
-            self.client.get(f'/profile/{PostURLTest.user.username}/'): HTTPStatus.OK,
             self.client.get(
-                f'/posts/{PostURLTest.post.pk}/'
+                f'/group/{PostURLTest.group.slug}/'
             ): HTTPStatus.OK,
+            self.client.get(
+                f'/profile/{PostURLTest.user.username}/'
+            ): HTTPStatus.OK,
+            self.client.get(f'/posts/{PostURLTest.post.pk}/'): HTTPStatus.OK,
         }
         for value, expected in response_values.items():
             with self.subTest(value=value):

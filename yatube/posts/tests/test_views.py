@@ -48,7 +48,8 @@ class TestViewsPosts(TestCase):
                 'posts:post_edit', kwargs={'pk': TestViewsPosts.post.pk}
             ): 'posts/create_post.html',
             reverse(
-                'posts:profile', kwargs={'username': TestViewsPosts.user.username}
+                'posts:profile',
+                kwargs={'username': TestViewsPosts.user.username},
             ): 'posts/profile.html',
         }
         for response, value in response_expected.items():

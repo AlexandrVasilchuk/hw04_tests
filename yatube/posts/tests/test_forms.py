@@ -43,7 +43,9 @@ class TestPostForm(TestCase):
         response = self.authorized_client.post(
             reverse('posts:post_create'), data=form_data, follow=True
         )
-        self.assertEqual(Post.objects.filter(pk=response.context['post'].pk).exists(), True)
+        self.assertEqual(
+            Post.objects.filter(pk=response.context['post'].pk).exists(), True
+        )
         self.assertRedirects(
             response,
             reverse(
