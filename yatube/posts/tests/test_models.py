@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from posts.models import FIRST_SYMBOLS, Group, Post
+from posts.models import POST_SYMBOLS_LIMITATION, Group, Post
 
 User = get_user_model()
 
@@ -22,7 +22,7 @@ class PostModelTest(TestCase):
         )
 
     def test_help_text(self) -> None:
-        """help_text в полях совпадает с ожидаемым."""
+        """Проверка help_text в полях совпадает с ожидаемым."""
         task = PostModelTest.post
         field_help_texts = {
             'text': 'Текст нового поста',
@@ -40,7 +40,7 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         field_title = {
             str(group): PostModelTest.group.title,
-            str(post): PostModelTest.post.text[:FIRST_SYMBOLS],
+            str(post): PostModelTest.post.text[:POST_SYMBOLS_LIMITATION],
         }
         for value, expected in field_title.items():
             with self.subTest(value=value):

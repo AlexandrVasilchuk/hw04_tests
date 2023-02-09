@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Зарегистрироваться{% endblock title %}
+{% block title %}
+  Зарегистрироваться
+{% endblock title %}
 {% block content %}
   <div class="row justify-content-center">
     <div class="col-md-8 p-5">
@@ -11,9 +13,7 @@
             {% csrf_token %}
             {% include "includes/form/field.html" %}
             <div class="col-md-6 offset-md-4">
-              <button type="submit" class="btn btn-primary">
-                Зарегистрироваться
-              </button>
+              <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
             </div>
           </form>
         </div>

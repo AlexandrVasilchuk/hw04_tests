@@ -8,6 +8,10 @@ EMAIL_FILE_PATH = str(BASE_DIR / 'sent_emails')
 
 SECRET_KEY = 'vkwgr0u7r^%@#u-s^nho!-nu0ek9f&fd2_&04jk^&%3166ejku'
 
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = str(BASE_DIR / 'media')
+
 DEBUG = True
 
 ALLOWED_HOSTS = [
@@ -31,6 +35,7 @@ INSTALLED_APPS = [
     'about.apps.AboutConfig',
     'core.apps.CoreConfig',
     'posts.apps.PostsConfig',
+    'sorl.thumbnail',
     'users.apps.UsersConfig',
 ]
 
@@ -110,3 +115,5 @@ LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'posts:index'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_FAILURE_VIEW = 'core.views.crf_failure'

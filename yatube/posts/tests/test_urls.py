@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
+from django.urls import reverse
 
 from posts.models import Group, Post
 
@@ -57,13 +58,16 @@ class PostURLTest(TestCase):
             self.client.get(
                 f'/posts/{PostURLTest.post.pk}/edit/', follow=True
             ): f'/auth/login/?next=/posts/{PostURLTest.post.pk}/edit/',
+            self.client.get(
+                f'/posts/{PostURLTest.post.pk}/comment/', follow=True
+            ): f'/auth/login/?next=/posts/{PostURLTest.post.pk}/comment/',
         }
         for value, expected in response_values.items():
             with self.subTest(value=value):
                 self.assertRedirects(
                     value,
                     expected,
-                    msg_prefix='Редирект работает неправильно!',
+                    msg_prefix=f'Редирект для {expected} работает неправильно!',
                 )
 
     def test_available_allowed_pages(self) -> None:
@@ -81,11 +85,12 @@ class PostURLTest(TestCase):
 
     def test_author_available(self) -> None:
         """Проверка достуности страницы для автора поста"""
-        response = self.authorized_client.get(
-            f'/posts/{PostURLTest.post.pk}/edit/'
+        self.assertEqual(
+            self.authorized_client.get(
+                f'/posts/{PostURLTest.post.pk}/edit/'
+            ).status_code,
+            HTTPStatus.OK,
         )
-        value = HTTPStatus.OK
-        self.assertEqual(response.status_code, value)
 
     def test_redirect_not_author(self) -> None:
         """Проверка редиректа гостя при попытке изменить пост"""

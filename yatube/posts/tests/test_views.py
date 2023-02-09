@@ -1,16 +1,36 @@
+import shutil
+import tempfile
+
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from posts.models import Group, Post
+from posts.models import Comment, Group, Post
 
 User = get_user_model()
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class TestViewsPosts(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00'
+            b'\x01\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00'
+            b'\x00\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif',
+        )
         super().setUpClass()
         cls.user = User.objects.create_user(username='test_name')
         cls.group = Group.objects.create(
@@ -22,12 +42,18 @@ class TestViewsPosts(TestCase):
             author=TestViewsPosts.user,
             group=TestViewsPosts.group,
             text='Тестовый пост более 15 символов',
+            image=uploaded,
         )
         cls.extra_group = Group.objects.create(
             title='Тестовая группа',
             slug='test_slug_extra',
             description='Тестовое описание',
         )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self) -> None:
         self.authorized_client = Client()
@@ -57,7 +83,7 @@ class TestViewsPosts(TestCase):
                 self.assertTemplateUsed(
                     self.authorized_client.get(response),
                     value,
-                    msg_prefix='Вызывается не тот шаблон!',
+                    msg_prefix=f'Вызывается не тот шаблон {value}!',
                 )
 
     def correct_page_obj_first_obj(self, context) -> None:
@@ -67,6 +93,7 @@ class TestViewsPosts(TestCase):
             context.author.username: TestViewsPosts.user.username,
             context.group.title: TestViewsPosts.group.title,
             context.text: TestViewsPosts.post.text,
+            context.image: TestViewsPosts.post.image,
         }
         for field, expected in fields_to_check.items():
             with self.subTest(expected=expected):
@@ -119,19 +146,20 @@ class TestViewsPosts(TestCase):
 
     def test_post_detail(self) -> None:
         """Проверка правильности контекста для post_detail"""
-        object = self.authorized_client.get(
+        context = self.authorized_client.get(
             reverse(
                 'posts:post_detail',
                 kwargs={'pk': TestViewsPosts.post.pk},
             )
         ).context['post']
-        self.assertEqual(object, TestViewsPosts.post)
+        self.correct_page_obj_first_obj(context)
 
     def correct_fields_post_form(self, form) -> None:
         """Проверка соответствия полей для формы"""
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
+            'image': forms.fields.ImageField,
         }
         for value, expected in form_fields.items():
             with self.subTest(value=value):
@@ -195,4 +223,32 @@ class TestViewsPosts(TestCase):
                 ).context['page_obj']
             ),
             0,
+        )
+
+    def test_create_comment_authorized(self) -> None:
+        """Проверка создания и отображения коммента на странице"""
+        form_data = {'text': 'Комментарий'}
+        response = self.authorized_client.post(
+            reverse(
+                'posts:add_comment', kwargs={'post_id': TestViewsPosts.post.pk}
+            ),
+            data=form_data,
+        )
+        self.assertRedirects(
+            response,
+            reverse(
+                'posts:post_detail', kwargs={'pk': TestViewsPosts.post.pk}
+            ),
+        )
+        self.assertEqual(
+            self.authorized_client.get(
+                reverse(
+                    'posts:post_detail', kwargs={'pk': TestViewsPosts.post.pk}
+                )
+            ).context['comments'][0],
+            Comment.objects.get(
+                author=TestViewsPosts.user,
+                text=form_data['text'],
+                post=TestViewsPosts.post.pk,
+            ),
         )
